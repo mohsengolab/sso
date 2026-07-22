@@ -1,0 +1,66 @@
+@model RegisterViewModel
+@{ ViewData["Title"] = "ثبت‌نام"; }
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <div class="text-center mb-4">
+                <div style="font-size:2.5rem">👤</div>
+                <h4>ایجاد حساب کاربری</h4>
+                <p class="text-muted small">پس از ثبت‌نام کد OTP به موبایل شما ارسال می‌شود</p>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <form asp-action="Register" method="post">
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="row">
+                    <div class="col mb-3">
+                        <label asp-for="FirstName" class="form-label fw-bold">نام</label>
+                        <input asp-for="FirstName" class="form-control" autofocus />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+                    <div class="col mb-3">
+                        <label asp-for="LastName" class="form-label fw-bold">نام خانوادگی</label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-bold">ایمیل</label>
+                    <input asp-for="Email" class="form-control" placeholder="example@mail.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="PhoneNumber" class="form-label fw-bold">شماره موبایل</label>
+                    <input asp-for="PhoneNumber" class="form-control text-center"
+                           placeholder="09123456789"
+                           inputmode="numeric"
+                           maxlength="11"
+                           style="letter-spacing:4px;font-size:1.1rem" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 btn-lg">
+                    ثبت‌نام و دریافت کد OTP
+                </button>
+            </form>
+
+            <hr />
+            <p class="text-center mb-0 small">
+                قبلاً ثبت‌نام کرده‌اید؟ <a asp-action="Login">ورود با OTP</a>
+            </p>
+        </div>
+    </div>
+</div>

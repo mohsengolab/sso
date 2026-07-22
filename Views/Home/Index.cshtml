@@ -1,0 +1,386 @@
+@model List<SsoServer.Controllers.AppCard>
+@{ ViewData["Title"] = "داشبورد SSO"; }
+
+<style>
+    /* ─── Hero ─── */
+    .hero {
+        text-align: center;
+        padding: 3rem 1rem 2.5rem;
+        color: #fff;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 30px;
+        padding: 6px 18px;
+        font-size: 0.78rem;
+        color: #a7f3d0;
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-badge::before {
+        content: '';
+        width: 7px; height: 7px;
+        background: #34d399;
+        border-radius: 50%;
+        animation: blink 1.8s infinite;
+    }
+
+    @@keyframes blink {
+        0%,100% { opacity: 1; }
+        50%      { opacity: 0.3; }
+    }
+
+    .hero h1 {
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.8rem;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+
+    .hero p {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.95rem;
+        max-width: 480px;
+        margin: 0 auto 2rem;
+        line-height: 1.9;
+    }
+
+    /* ─── Stats bar ─── */
+    .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        color: rgba(255,255,255,0.8);
+    }
+
+    .stat-num {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #34d399;
+        display: block;
+    }
+
+    .stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+    .stat-divider {
+        width: 1px;
+        background: rgba(255,255,255,0.12);
+        align-self: stretch;
+    }
+
+    /* ─── Section title ─── */
+    .section-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1.6rem;
+    }
+
+    .section-head h2 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .section-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(to left, transparent, rgba(255,255,255,0.15));
+    }
+
+    /* ─── App Cards ─── */
+    .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.4rem;
+    }
+
+    .app-card {
+        background: rgba(255,255,255,0.97);
+        border-radius: 24px;
+        padding: 1.8rem;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.06);
+        transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        animation: cardIn 0.5s cubic-bezier(0.16,1,0.3,1) backwards;
+    }
+
+    .app-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 30px 70px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    @@keyframes cardIn {
+        from { opacity: 0; transform: translateY(30px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .card-icon {
+        width: 60px; height: 60px;
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .card-meta { flex: 1; }
+
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .card-client-id {
+        display: inline-block;
+        font-size: 0.7rem;
+        color: #9ca3af;
+        background: #f3f4f6;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-family: monospace;
+        direction: ltr;
+    }
+
+    .card-desc {
+        font-size: 0.84rem;
+        color: #6b7280;
+        line-height: 1.75;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 0.9rem;
+    }
+
+    .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 1rem;
+    }
+
+    .card-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: #16a34a;
+        font-weight: 600;
+    }
+
+    .status-dot {
+        width: 8px; height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    .btn-enter {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 20px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fff;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-enter:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .btn-enter svg {
+        width: 15px; height: 15px;
+        transition: transform 0.2s;
+    }
+
+    .btn-enter:hover svg { transform: translateX(-3px); }
+
+    /* ─── Empty state ─── */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: rgba(255,255,255,0.5);
+    }
+
+    /* ─── Endpoints info ─── */
+    .endpoints-card {
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 1.6rem 2rem;
+        margin-top: 3rem;
+    }
+
+    .endpoints-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1.2rem;
+    }
+
+    .endpoints-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.8rem;
+    }
+
+    .endpoint-item {
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        padding: 10px 14px;
+    }
+
+    .endpoint-label {
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.4);
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .endpoint-url {
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: #a7f3d0;
+        direction: ltr;
+        display: block;
+    }
+</style>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-badge">سامانه در حال اجرا</div>
+    <h1>سامانه یکپارچه احراز هویت</h1>
+    <p>
+        ورود متمرکز به تمام سامانه‌های دانشگاه حضرت معصومه (س)
+        با یک حساب کاربری واحد
+    </p>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-num">@Model.Count</span>
+            <span class="stat-label">سامانه متصل</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-num">RS256</span>
+            <span class="stat-label">الگوریتم امضا</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-num">PKCE</span>
+            <span class="stat-label">پروتکل امنیتی</span>
+        </div>
+    </div>
+</div>
+
+<!-- Apps list -->
+<div class="section-head">
+    <h2>سامانه‌های متصل</h2>
+    <div class="section-line"></div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div style="font-size:3rem;margin-bottom:1rem">🔌</div>
+        <p>هنوز سامانه‌ای ثبت نشده است</p>
+    </div>
+}
+else
+{
+    <div class="apps-grid">
+        @{int delay = 0;}
+        @foreach (var app in Model)
+        {
+            <div class="app-card" style="animation-delay: @(delay * 0.1)s">
+                <div class="card-top">
+                    <div class="card-icon" style="background: linear-gradient(135deg, @app.Color, @app.Color)dd;">
+                        @app.Icon
+                    </div>
+                    <div class="card-meta">
+                        <div class="card-title">@app.DisplayName</div>
+                        <span class="card-client-id">@app.ClientId</span>
+                    </div>
+                </div>
+
+                <div class="card-desc">@app.Description</div>
+
+                <div class="card-footer">
+                    <div class="card-status">
+                        <span class="status-dot"></span>
+                        فعال و متصل
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(app.HomeUrl))
+                    {
+                        <a href="@app.HomeUrl" target="_blank"
+                           class="btn-enter"
+                           style="background: linear-gradient(135deg, @app.Color, @(app.Color)cc)">
+                            ورود به سامانه
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M15 18l-6-6 6-6"/>
+                            </svg>
+                        </a>
+                    }
+                </div>
+            </div>
+            delay++;
+        }
+    </div>
+}
+
+<!-- Endpoints -->
+<div class="endpoints-card">
+    <div class="endpoints-title">اندپوینت‌های OpenID Connect</div>
+    <div class="endpoints-grid">
+        <div class="endpoint-item">
+            <span class="endpoint-label">Authorization</span>
+            <span class="endpoint-url">/connect/authorize</span>
+        </div>
+        <div class="endpoint-item">
+            <span class="endpoint-label">Token</span>
+            <span class="endpoint-url">/connect/token</span>
+        </div>
+        <div class="endpoint-item">
+            <span class="endpoint-label">UserInfo</span>
+            <span class="endpoint-url">/connect/userinfo</span>
+        </div>
+        <div class="endpoint-item">
+            <span class="endpoint-label">Discovery</span>
+            <span class="endpoint-url">/.well-known/openid-configuration</span>
+        </div>
+    </div>
+</div>

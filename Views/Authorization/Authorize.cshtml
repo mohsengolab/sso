@@ -1,0 +1,74 @@
+@model AuthorizeViewModel
+@{ ViewData["Title"] = "تأیید دسترسی"; }
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <div class="text-center mb-4">
+                <div style="font-size: 3rem;">🔐</div>
+                <h4>درخواست دسترسی</h4>
+                <p class="text-muted">
+                    <strong class="text-primary">@(Model.ApplicationName ?? Model.ClientId)</strong>
+                    می‌خواهد به حساب شما دسترسی داشته باشد.
+                </p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Scope))
+            {
+                <div class="alert alert-info">
+                    <strong>دسترسی‌های درخواستی:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach (var scope in Model.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <li>
+                                @switch (scope)
+                                {
+                                    case "openid": <span>شناسه کاربری شما</span> break;
+                                    case "profile": <span>اطلاعات پروفایل (نام)</span> break;
+                                    case "email": <span>آدرس ایمیل</span> break;
+                                    case "roles": <span>نقش‌های کاربری</span> break;
+                                    case "api": <span>دسترسی به API</span> break;
+                                    default: <span>@scope</span> break;
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form method="POST" action="/connect/authorize">
+                @* پارامترهای اصلی OAuth2 *@
+                <input type="hidden" name="client_id" value="@Model.ClientId" />
+                <input type="hidden" name="redirect_uri" value="@Model.RedirectUri" />
+                <input type="hidden" name="response_type" value="@Model.ResponseType" />
+                <input type="hidden" name="scope" value="@Model.Scope" />
+                @if (!string.IsNullOrEmpty(Model.State))
+                {
+                    <input type="hidden" name="state" value="@Model.State" />
+                }
+                @if (!string.IsNullOrEmpty(Model.Nonce))
+                {
+                    <input type="hidden" name="nonce" value="@Model.Nonce" />
+                }
+                @if (!string.IsNullOrEmpty(Model.CodeChallenge))
+                {
+                    <input type="hidden" name="code_challenge" value="@Model.CodeChallenge" />
+                    <input type="hidden" name="code_challenge_method" value="@Model.CodeChallengeMethod" />
+                }
+                @if (!string.IsNullOrEmpty(Model.ResponseMode))
+                {
+                    <input type="hidden" name="response_mode" value="@Model.ResponseMode" />
+                }
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" name="submit.Accept" value="Accept" class="btn btn-success flex-fill">
+                        ✅ اجازه می‌دهم
+                    </button>
+                    <button type="submit" name="submit.Deny" value="Deny" class="btn btn-outline-danger flex-fill">
+                        ❌ رد می‌کنم
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

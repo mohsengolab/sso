@@ -1,0 +1,4 @@
+wwwroot\css\site.css
+wwwroot\js\site.js
+wwwroot\lib\bootstrap\css\bootstrap.rtl.min.css
+wwwroot\lib\bootstrap\js\bootstrap.bundle.min.js

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- https://go.microsoft.com/fwlink/?LinkID=208121. -->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\software\sso\SsoServer\bin\Release\net8.0\publish\</_PublishTargetUrl>
+    <History>True|2026-07-15T06:06:17.5614171Z||;True|2026-07-14T11:19:19.3947099+03:30||;True|2026-07-14T10:45:34.5998940+03:30||;True|2026-06-27T11:25:54.9394316+03:30||;True|2026-06-27T10:47:04.5205345+03:30||;True|2026-06-27T10:46:05.8352590+03:30||;True|2026-06-27T10:38:03.9958393+03:30||;True|2026-06-27T10:33:11.6197182+03:30||;True|2026-06-27T10:29:19.6933224+03:30||;True|2026-06-27T10:28:24.7394457+03:30||;True|2026-06-27T10:18:00.1177775+03:30||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

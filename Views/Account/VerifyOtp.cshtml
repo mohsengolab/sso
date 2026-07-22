@@ -1,0 +1,199 @@
+@model VerifyOtpViewModel
+@{
+    ViewData["Title"] = "تأیید کد OTP";
+    Layout = "_AuthLayout";
+    var masked = Model.PhoneNumber.Length >= 11
+        ? Model.PhoneNumber[..4] + "****" + Model.PhoneNumber[7..]
+        : Model.PhoneNumber;
+}
+
+<div class="auth-card">
+
+    <div class="univ-header">
+        <div class="univ-emblem">
+            <span class="emblem-icon">🌸</span>
+        </div>
+        <div class="univ-name">دانشگاه حضرت معصومه (س)</div>
+    </div>
+
+    <hr class="gold-divider" />
+
+    <p class="otp-label">کد ۶ رقمی ارسال شده به شماره:</p>
+    <div style="text-align:center;margin-bottom:1.2rem">
+        <span class="phone-pill">@masked</span>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert-custom" id="errorBox">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>⚠ @error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <form asp-action="VerifyOtp" method="post" id="otpForm">
+        <input type="hidden" asp-for="PhoneNumber" />
+        <input type="hidden" asp-for="ReturnUrl" />
+        <input type="hidden" asp-for="Code" id="hiddenCode" />
+
+        <div class="otp-boxes" id="otpBoxes">
+            @for (int i = 0; i < 6; i++)
+            {
+                <input class="otp-box"
+                       type="text"
+                       inputmode="numeric"
+                       maxlength="1"
+                       pattern="[0-9]"
+                       data-index="@i"
+                       autocomplete="@(i == 0 ? "one-time-code" : "off")"
+                       style="animation-delay: @(i * 0.07)s" />
+            }
+        </div>
+
+        <!-- تایمر -->
+        <div class="timer-wrap">
+            <div class="timer-ring timer-active" id="timerBadge">
+                <span id="timerIcon">⏱</span>
+                <span id="timerDisplay">03:00</span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-main" id="verifyBtn" disabled
+                style="opacity:0.5;cursor:not-allowed">
+            تأیید و ورود ✓
+        </button>
+    </form>
+
+    <!-- ارسال مجدد -->
+    <form asp-action="ResendOtp" method="post" id="resendForm">
+        <input type="hidden" name="phone" value="@Model.PhoneNumber" />
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        <button type="submit" class="btn-resend" id="resendBtn" disabled>
+            🔄 ارسال مجدد کد
+        </button>
+    </form>
+
+    <a asp-action="Login" class="back-link">← تغییر شماره موبایل</a>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const boxes      = Array.from(document.querySelectorAll('.otp-box'));
+    const hidden     = document.getElementById('hiddenCode');
+    const form       = document.getElementById('otpForm');
+    const verifyBtn  = document.getElementById('verifyBtn');
+    const timerEl    = document.getElementById('timerDisplay');
+    const timerBadge = document.getElementById('timerBadge');
+    const timerIcon  = document.getElementById('timerIcon');
+    const resendBtn  = document.getElementById('resendBtn');
+
+    // ─── جعبه‌های OTP ───────────────────────────────────────
+
+    boxes.forEach((box, i) => {
+
+        box.addEventListener('keydown', e => {
+            if (e.key === 'Backspace') {
+                if (box.value) {
+                    box.value = '';
+                    box.classList.remove('filled');
+                } else if (i > 0) {
+                    boxes[i - 1].focus();
+                    boxes[i - 1].value = '';
+                    boxes[i - 1].classList.remove('filled');
+                }
+                syncCode();
+                e.preventDefault();
+            }
+
+            // جلوگیری از ورود غیر عدد
+            if (e.key.length === 1 && !/\d/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        box.addEventListener('input', e => {
+            const digit = box.value.replace(/\D/g, '').slice(-1);
+            box.value = digit;
+
+            if (digit) {
+                box.classList.add('filled');
+                if (i < 5) {
+                    setTimeout(() => boxes[i + 1].focus(), 30);
+                }
+            } else {
+                box.classList.remove('filled');
+            }
+            syncCode();
+        });
+
+        // پشتیبانی از paste
+        box.addEventListener('paste', e => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text').replace(/\D/g, '');
+            text.split('').forEach((ch, j) => {
+                if (boxes[i + j]) {
+                    boxes[i + j].value = ch;
+                    boxes[i + j].classList.add('filled');
+                }
+            });
+            syncCode();
+            const next = Math.min(i + text.length, 5);
+            boxes[next].focus();
+        });
+
+        box.addEventListener('click', () => box.select());
+    });
+
+    function syncCode() {
+        const code = boxes.map(b => b.value).join('');
+        hidden.value = code;
+
+        const full = code.length === 6 && /^\d{6}$/.test(code);
+        verifyBtn.disabled = !full;
+        verifyBtn.style.opacity = full ? '1' : '0.5';
+        verifyBtn.style.cursor  = full ? 'pointer' : 'not-allowed';
+
+        if (full) {
+            // ارسال خودکار پس از پر شدن همه مربع‌ها
+            setTimeout(() => form.submit(), 350);
+        }
+    }
+
+    // ─── تایمر ۳ دقیقه ───────────────────────────────────────
+
+    let timeLeft = 180;
+
+    const tick = setInterval(() => {
+        timeLeft--;
+
+        const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const s = String(timeLeft % 60).padStart(2, '0');
+        timerEl.textContent = `${m}:${s}`;
+
+        // رنگ قرمز در آخرین ۳۰ ثانیه
+        if (timeLeft <= 30 && timeLeft > 0) {
+            timerBadge.style.borderColor = '#fbbf24';
+            timerBadge.style.color = '#b45309';
+            timerBadge.style.background = '#fffbeb';
+            timerIcon.textContent = '⚡';
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(tick);
+            timerBadge.className = 'timer-ring timer-expired';
+            timerEl.textContent = 'کد منقضی شد';
+            timerIcon.textContent = '⚠';
+            resendBtn.disabled = false;
+            resendBtn.classList.add('ready');
+        }
+    }, 1000);
+
+    // فوکوس روی اولین جعبه
+    boxes[0].focus();
+
+})();
+</script>
+}

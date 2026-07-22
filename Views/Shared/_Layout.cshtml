@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — سامانه SSO دانشگاه حضرت معصومه</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.rtl.min.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0a2e1a 0%, #1a5c3a 55%, #0d3b24 100%);
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            color: #1f2937;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+            top: -200px; right: -200px;
+            pointer-events: none;
+        }
+
+        /* ─── Navbar ─── */
+        .sso-nav {
+            background: rgba(10, 46, 26, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0.8rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .nav-brand-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #1d6e47, #2ea86a);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(26,92,58,0.5);
+        }
+
+        .nav-brand-text { line-height: 1.2; }
+        .nav-brand-text strong { display: block; font-size: 0.95rem; color: #fff; }
+        .nav-brand-text span   { font-size: 0.72rem; color: rgba(255,255,255,0.55); }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-user-badge {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 25px;
+            padding: 6px 16px;
+            color: #d1fae5;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .nav-user-dot {
+            width: 8px; height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.4; }
+        }
+
+        .btn-nav-login {
+            background: linear-gradient(135deg, #1d6e47, #2ea86a);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 7px 18px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .btn-nav-login:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,92,58,0.5); color: #fff; }
+
+        .btn-nav-logout {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-nav-logout:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+        /* ─── Body ─── */
+        .main-content {
+            padding: 2.5rem 1rem 4rem;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sso-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a asp-controller="Home" asp-action="Index" class="nav-brand">
+            <div class="nav-brand-icon">🌸</div>
+            <div class="nav-brand-text">
+                <strong>سامانه احراز هویت یکپارچه</strong>
+                <span>دانشگاه حضرت معصومه (س)</span>
+            </div>
+        </a>
+
+        <div class="nav-user">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="nav-user-badge">
+                    <span class="nav-user-dot"></span>
+                    @User.Identity.Name
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0">
+                    <button type="submit" class="btn-nav-logout">خروج</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn-nav-login">ورود به سامانه</a>
+            }
+        </div>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="container">
+        @RenderBody()
+    </div>
+</div>
+
+<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

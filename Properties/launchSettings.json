@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SsoServer": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:13652;http://localhost:13653"
+    }
+  }
+}

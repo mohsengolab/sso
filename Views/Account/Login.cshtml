@@ -1,0 +1,82 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "ورود به سامانه";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-card">
+
+    <div class="univ-header">
+        <div class="univ-emblem">
+            <span class="emblem-icon">🌸</span>
+        </div>
+        <div class="univ-name">دانشگاه حضرت معصومه (س)</div>
+        <div class="univ-sub">سامانه یکپارچه احراز هویت</div>
+    </div>
+
+    <hr class="gold-divider" />
+
+    <p style="text-align:center;color:#6b7280;font-size:0.88rem;margin-bottom:1.6rem;line-height:1.7">
+        برای <strong style="color:#1a5c3a">ورود</strong> یا
+        <strong style="color:#1a5c3a">ثبت‌نام</strong>،
+        شماره موبایل خود را وارد کنید.
+        <br />کد تأیید پیامکی ارسال می‌شود.
+    </p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert-custom">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>⚠ @error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <form asp-action="Login" method="post" id="loginForm">
+        <input type="hidden" asp-for="ReturnUrl" />
+
+        <div style="margin-bottom:1.6rem">
+            <label class="field-label" asp-for="PhoneNumber">شماره موبایل</label>
+            <input asp-for="PhoneNumber"
+                   class="input-phone"
+                   id="phoneInput"
+                   placeholder="09XXXXXXXXX"
+                   inputmode="numeric"
+                   maxlength="11"
+                   autocomplete="tel"
+                   autofocus />
+            <span asp-validation-for="PhoneNumber"
+                  style="display:block;font-size:0.8rem;color:#dc2626;margin-top:6px;text-align:center"></span>
+        </div>
+
+        <button type="submit" class="btn-main" id="submitBtn">
+            ارسال کد تأیید پیامکی &nbsp;←
+        </button>
+    </form>
+
+    <div style="text-align:center;margin-top:1.2rem">
+        <a class="btn-main" style="display:inline-block;text-decoration:none"
+           href="/external/msrt/login?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "")">
+            ورود با درگاه دولت (وزارت علوم)
+        </a>
+    </div>
+
+    <p class="footer-note">
+        با ورود، قوانین و مقررات دانشگاه حضرت معصومه را می‌پذیرید
+    </p>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('phoneInput').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 11);
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function () {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span style="opacity:0.7">در حال ارسال...</span>';
+        btn.disabled = true;
+    });
+</script>
+}
