@@ -46,11 +46,15 @@
 
         .nav-brand-icon {
             width: 40px; height: 40px;
-            background: linear-gradient(135deg, #1d6e47, #2ea86a);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem;
             box-shadow: 0 4px 12px rgba(26,92,58,0.5);
+            overflow: hidden;
+        }
+
+        .nav-brand-icon img {
+            width: 100%; height: 100%;
+            object-fit: contain;
         }
 
         .nav-brand-text { line-height: 1.2; }
@@ -125,7 +129,7 @@
 <nav class="sso-nav">
     <div class="container d-flex justify-content-between align-items-center">
         <a asp-controller="Home" asp-action="Index" class="nav-brand">
-            <div class="nav-brand-icon">🌸</div>
+            <div class="nav-brand-icon"><img src="~/images/university-logo.png" alt="لوگوی دانشگاه" /></div>
             <div class="nav-brand-text">
                 <strong>سامانه احراز هویت یکپارچه</strong>
                 <span>دانشگاه حضرت معصومه (س)</span>

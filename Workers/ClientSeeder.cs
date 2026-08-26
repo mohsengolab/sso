@@ -112,7 +112,7 @@ public class ClientSeeder : IHostedService
             }
         }, cancellationToken);
 
-        // HMU website client - Authorization Code + PKCE
+        // HMU website client - Authorization Code (no PKCE required; client secret used instead)
         await CreateOrUpdateAsync(manager, new OpenIddictApplicationDescriptor
         {
             ClientId = "hmu-web",
@@ -147,10 +147,6 @@ public class ClientSeeder : IHostedService
                 Permissions.Scopes.Profile,
                 Permissions.Scopes.Roles,
                 Permissions.Prefixes.Scope + "api"
-            },
-            Requirements =
-            {
-                Requirements.Features.ProofKeyForCodeExchange
             }
         }, cancellationToken);
     }

@@ -71,7 +71,7 @@ public class ExternalAuthController : Controller
             return RedirectToAction("Login", "Account", new { returnUrl, error = "msrt_state" });
         }
 
-        var accessToken = await ExchangeCodeForTokenAsync(code);
+        var (accessToken, tokenError) = await ExchangeCodeForTokenAsync(code);
         if (string.IsNullOrEmpty(accessToken))
             return RedirectToAction("Login", "Account", new { returnUrl, error = "msrt_token" });
 
@@ -114,7 +114,7 @@ public class ExternalAuthController : Controller
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private async Task<string?> ExchangeCodeForTokenAsync(string code)
+    private async Task<(string? AccessToken, string Error)> ExchangeCodeForTokenAsync(string code)
     {
         var client = _httpClientFactory.CreateClient("msrt");
 
@@ -130,20 +130,22 @@ public class ExternalAuthController : Controller
         try
         {
             var response = await client.PostAsync(_settings.TokenEndpoint, new FormUrlEncodedContent(pairs));
+            var responseBody = await response.Content.ReadAsStringAsync();
+
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("درخواست توکن به MSRT با کد {Status} برگشت", response.StatusCode);
-                return null;
+                var msg = $"HTTP {(int)response.StatusCode}\nBody: {responseBody}";
+                _logger.LogWarning("توکن MSRT ناموفق: {Msg}", msg);
+                return (null, msg);
             }
 
-            var json = await response.Content.ReadAsStringAsync();
-            var token = JsonSerializer.Deserialize<MsrtTokenResponse>(json, JsonOptions);
-            return token?.AccessToken;
+            var token = JsonSerializer.Deserialize<MsrtTokenResponse>(responseBody, JsonOptions);
+            return (token?.AccessToken, responseBody);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "خطا در تبادل کد با MSRT");
-            return null;
+            return (null, ex.Message);
         }
     }
 

@@ -181,4 +181,5 @@ D:\software\sso\SsoServer\obj\Release\net8.0\refint\SsoServer.dll
 D:\software\sso\SsoServer\obj\Release\net8.0\SsoServer.pdb
 D:\software\sso\SsoServer\obj\Release\net8.0\SsoServer.genruntimeconfig.cache
 D:\software\sso\SsoServer\obj\Release\net8.0\ref\SsoServer.dll
+D:\software\sso\SsoServer\obj\Release\net8.0\SsoServer.sourcelink.json
 D:\software\sso\SsoServer\obj\Release\net8.0\staticwebassets.upToDateCheck.txt

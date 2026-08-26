@@ -8,7 +8,10 @@
 
     <div class="univ-header">
         <div class="univ-emblem">
-            <span class="emblem-icon">🌸</span>
+            <img src="~/images/logo.png"
+                 alt="لوگوی دانشگاه حضرت معصومه"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+            <div class="emblem-fallback">🏛</div>
         </div>
         <div class="univ-name">دانشگاه حضرت معصومه (س)</div>
         <div class="univ-sub">سامانه یکپارچه احراز هویت</div>
@@ -16,67 +19,47 @@
 
     <hr class="gold-divider" />
 
-    <p style="text-align:center;color:#6b7280;font-size:0.88rem;margin-bottom:1.6rem;line-height:1.7">
-        برای <strong style="color:#1a5c3a">ورود</strong> یا
-        <strong style="color:#1a5c3a">ثبت‌نام</strong>،
-        شماره موبایل خود را وارد کنید.
-        <br />کد تأیید پیامکی ارسال می‌شود.
-    </p>
-
-    @if (!ViewData.ModelState.IsValid)
+    @if (ViewData["Error"] != null)
     {
-        <div class="alert-custom">
-            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <div>⚠ @error.ErrorMessage</div>
-            }
-        </div>
+        <div class="alert-custom" style="margin-bottom:1.2rem">⚠ @ViewData["Error"]</div>
     }
 
-    <form asp-action="Login" method="post" id="loginForm">
-        <input type="hidden" asp-for="ReturnUrl" />
+    <p class="gov-hint">برای ورود از حساب کاربری درگاه ملی خدمات دولت استفاده کنید</p>
 
-        <div style="margin-bottom:1.6rem">
-            <label class="field-label" asp-for="PhoneNumber">شماره موبایل</label>
-            <input asp-for="PhoneNumber"
-                   class="input-phone"
-                   id="phoneInput"
-                   placeholder="09XXXXXXXXX"
-                   inputmode="numeric"
-                   maxlength="11"
-                   autocomplete="tel"
-                   autofocus />
-            <span asp-validation-for="PhoneNumber"
-                  style="display:block;font-size:0.8rem;color:#dc2626;margin-top:6px;text-align:center"></span>
-        </div>
+    <a class="btn-gov"
+       href="/external/msrt/login?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "")">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M8 3v18M12 3v18M16 3v18" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+            <path d="M2 9h20M2 15h20" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+        </svg>
+        ورود با درگاه دولت
+        <span class="gov-chip">وزارت علوم</span>
+    </a>
 
-        <button type="submit" class="btn-main" id="submitBtn">
-            ارسال کد تأیید پیامکی &nbsp;←
-        </button>
-    </form>
-
-    <div style="text-align:center;margin-top:1.2rem">
-        <a class="btn-main" style="display:inline-block;text-decoration:none"
-           href="/external/msrt/login?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "")">
-            ورود با درگاه دولت (وزارت علوم)
-        </a>
-    </div>
-
-    <p class="footer-note">
-        با ورود، قوانین و مقررات دانشگاه حضرت معصومه را می‌پذیرید
-    </p>
+    <p class="footer-note">با ورود، قوانین و مقررات دانشگاه حضرت معصومه را می‌پذیرید</p>
 </div>
 
 @section Scripts {
 <script>
-    document.getElementById('phoneInput').addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, '').slice(0, 11);
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', function () {
-        const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<span style="opacity:0.7">در حال ارسال...</span>';
-        btn.disabled = true;
-    });
+(function () {
+    const params = new URLSearchParams(location.search);
+    const err = params.get('error');
+    const msgs = {
+        msrt_nocode:   'درگاه دولت کد احراز هویت ارسال نکرد.',
+        msrt_state:    'درخواست نامعتبر — لطفاً دوباره تلاش کنید.',
+        msrt_token:    'دریافت توکن از درگاه دولت ناموفق بود.',
+        msrt_userinfo: 'دریافت اطلاعات کاربر از درگاه دولت ناموفق بود.',
+        msrt_create:   'ساخت حساب کاربری ناموفق بود — با پشتیبانی تماس بگیرید.',
+    };
+    if (err && msgs[err]) {
+        const div = document.createElement('div');
+        div.className = 'alert-custom';
+        div.style.marginBottom = '1.2rem';
+        div.textContent = '⚠ ' + msgs[err];
+        document.querySelector('.btn-gov').before(div);
+    }
+})();
 </script>
 }
