@@ -8,6 +8,7 @@ using Microsoft.Extensions.Primitives;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SsoServer.Models;
+using SsoServer.Services;
 using SsoServer.ViewModels;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -64,12 +65,17 @@ public class AuthorizationController : Controller
                     ?? throw new InvalidOperationException("Application not found.");
 
                 var acceptAuths = await GetAuthorizationsAsync(acceptUser, acceptApp, request);
-                return await IssueSignInAsync(acceptUser, acceptApp, request, acceptAuths);
+                return await IssueSignInAsync(acceptUser, acceptApp, request, acceptAuths, acceptResult.Principal);
             }
         }
 
         // Check if user is authenticated
         var result = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+
+        // کلاینتی که acr_values=gov بفرستد (مثل پنل مدیریت hmu) فقط با ورود از درگاه دولت پذیرفته می‌شود
+        bool wantsGov = (request.AcrValues ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Contains(GovAuth.AcrGov);
 
         if (!result.Succeeded ||
             request.HasPrompt(Prompts.Login) ||
@@ -93,12 +99,34 @@ public class AuthorizationController : Controller
                 : Request.Query.Where(p => p.Key != Parameters.Prompt).ToList();
             parameters.Add(KeyValuePair.Create(Parameters.Prompt, new StringValues(prompt)));
 
+            if (wantsGov)
+                return RedirectToGov(Request.PathBase + Request.Path + QueryString.Create(parameters));
+
             return Challenge(
                 authenticationSchemes: IdentityConstants.ApplicationScheme,
                 properties: new AuthenticationProperties
                 {
                     RedirectUri = Request.PathBase + Request.Path + QueryString.Create(parameters)
                 });
+        }
+
+        // جلسه‌ی موجود از درگاه دولت نیست (مثلا ورود با رمز/پیامک) → دوباره از درگاه دولت
+        if (wantsGov && result.Principal?.FindFirst(GovAuth.SourceClaim)?.Value != GovAuth.SourceGov)
+        {
+            if (request.HasPrompt(Prompts.None))
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.LoginRequired,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Government gateway login is required."
+                    }));
+            }
+
+            var govParameters = (Request.HasFormContentType ? Request.Form.ToList() : Request.Query.ToList())
+                .Where(p => p.Key != Parameters.Prompt).ToList();
+            return RedirectToGov(Request.PathBase + Request.Path + QueryString.Create(govParameters));
         }
 
         var user = await _userManager.GetUserAsync(result.Principal)
@@ -123,7 +151,7 @@ public class AuthorizationController : Controller
             case ConsentTypes.Implicit:
             case ConsentTypes.External when authorizations.Any():
             case ConsentTypes.Explicit when authorizations.Any() && !request.HasPrompt(Prompts.Consent):
-                return await IssueSignInAsync(user, application, request, authorizations);
+                return await IssueSignInAsync(user, application, request, authorizations, result.Principal);
 
             case ConsentTypes.Explicit when request.HasPrompt(Prompts.None):
             case ConsentTypes.Systematic when request.HasPrompt(Prompts.None):
@@ -185,6 +213,7 @@ public class AuthorizationController : Controller
         var principal = await _signInManager.CreateUserPrincipalAsync(user);
         principal.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user));
         principal.SetScopes(result.Principal?.GetScopes() ?? []);
+        CopyGovClaims(result.Principal, principal);
 
         var resources = new List<string>();
         await foreach (var r in _scopeManager.ListResourcesAsync(principal.GetScopes()))
@@ -257,6 +286,13 @@ public class AuthorizationController : Controller
         if (User.HasScope(Scopes.Roles))
             claims[Claims.Role] = await _userManager.GetRolesAsync(user);
 
+        foreach (var type in GovAuth.ClaimTypes)
+        {
+            var value = User.FindFirst(type)?.Value;
+            if (!string.IsNullOrEmpty(value))
+                claims[type] = value;
+        }
+
         return Ok(claims);
     }
 
@@ -282,13 +318,30 @@ public class AuthorizationController : Controller
         return list;
     }
 
+    private IActionResult RedirectToGov(string authorizeUrl)
+        => Redirect(GovAuth.LoginPath + "?returnUrl=" + Uri.EscapeDataString(authorizeUrl));
+
+    // کلیم‌های ورود از درگاه دولت از جلسه (کوکی/کد) به توکن منتقل می‌شوند
+    private static void CopyGovClaims(ClaimsPrincipal? source, ClaimsPrincipal target)
+    {
+        if (source is null) return;
+        foreach (var type in GovAuth.ClaimTypes)
+        {
+            var value = source.FindFirst(type)?.Value;
+            if (!string.IsNullOrEmpty(value))
+                target.SetClaim(type, value);
+        }
+    }
+
     private async Task<IActionResult> IssueSignInAsync(
-        ApplicationUser user, object application, OpenIddictRequest request, List<object> authorizations)
+        ApplicationUser user, object application, OpenIddictRequest request, List<object> authorizations,
+        ClaimsPrincipal? sessionPrincipal)
     {
         var principal = await _signInManager.CreateUserPrincipalAsync(user);
 
         // OpenIddict نیاز به کلیم "sub" دارد که Identity با نام متفاوت ست می‌کند
         principal.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user));
+        CopyGovClaims(sessionPrincipal, principal);
 
         principal.SetScopes(request.GetScopes());
 

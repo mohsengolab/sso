@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using SsoServer.Data;
+using SsoServer.Models;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SsoServer.Workers;
@@ -127,6 +129,11 @@ public class ClientSeeder : IHostedService
                 new Uri("https://www.hmu.ac.ir/callback1.aspx"),
                 new Uri("http://localhost:4609/callback1.aspx"),
                 new Uri("http://localhost:5000/callback1.aspx"),
+                // ورود مدیر پنل از درگاه دولت
+                new Uri("https://hmu.ac.ir/administrator/ssocallback.aspx"),
+                new Uri("https://www.hmu.ac.ir/administrator/ssocallback.aspx"),
+                new Uri("http://localhost:4609/administrator/ssocallback.aspx"),
+                new Uri("http://localhost:5000/administrator/ssocallback.aspx"),
             },
             PostLogoutRedirectUris =
             {
@@ -149,6 +156,9 @@ public class ClientSeeder : IHostedService
                 Permissions.Prefixes.Scope + "api"
             }
         }, cancellationToken);
+
+        // Seed admin user for password login
+        await SeedAdminUserAsync(_serviceProvider, cancellationToken);
     }
 
     private static async Task CreateOrUpdateAsync(
@@ -161,6 +171,40 @@ public class ClientSeeder : IHostedService
             await manager.CreateAsync(descriptor, cancellationToken);
         else
             await manager.UpdateAsync(existing, descriptor, cancellationToken);
+    }
+
+    private static async Task SeedAdminUserAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var scopedProvider = scope.ServiceProvider;
+
+        var userManager = scopedProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scopedProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+        var adminUser = await userManager.FindByNameAsync("admin");
+        if (adminUser == null)
+        {
+            adminUser = new ApplicationUser
+            {
+                UserName             = "admin",
+                PhoneNumber          = "09120000001",
+                PhoneNumberConfirmed = true,
+                Email                = "admin@hmu.ac.ir",
+                EmailConfirmed       = true,
+                FirstName            = "مدیر",
+                LastName             = "سیستم",
+                DisplayName          = "مدیر سیستم"
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "admin123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

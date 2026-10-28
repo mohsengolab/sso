@@ -23,6 +23,15 @@
         <span class="phone-pill">@masked</span>
     </div>
 
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert-success">✓ @TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-custom">⚠ @TempData["Error"]</div>
+    }
+
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert-custom" id="errorBox">
@@ -62,7 +71,7 @@
 
         <button type="submit" class="btn-main" id="verifyBtn" disabled
                 style="opacity:0.5;cursor:not-allowed">
-            تأیید و ورود ✓
+            تأیید کد ✓
         </button>
     </form>
 
@@ -75,7 +84,7 @@
         </button>
     </form>
 
-    <a asp-action="Login" class="back-link">← تغییر شماره موبایل</a>
+    <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" class="back-link">← تغییر شماره موبایل</a>
 </div>
 
 @section Scripts {

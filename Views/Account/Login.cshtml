@@ -23,7 +23,29 @@
     {
         <div class="alert-custom" style="margin-bottom:1.2rem">⚠ @ViewData["Error"]</div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-custom" style="margin-bottom:1.2rem">⚠ @TempData["Error"]</div>
+    }
 
+    <div asp-validation-summary="All" class="alert-custom" style="margin-bottom:1.2rem"></div>
+
+    <!-- روش اول: ورود با شماره موبایل -->
+    <form asp-action="Login" method="post" id="loginForm">
+        <input type="hidden" asp-for="ReturnUrl" />
+
+        <label class="field-label" asp-for="PhoneNumber">نام کاربری (شماره موبایل)</label>
+        <input asp-for="PhoneNumber" class="input-phone" type="tel" inputmode="numeric"
+               maxlength="11" placeholder="09123456789" autocomplete="username" autofocus />
+
+        <button type="submit" class="btn-main" style="margin-top:1.2rem">ادامه</button>
+    </form>
+
+    <div style="text-align:center; margin:1rem 0; color:#9ca3af; font-size:0.85rem;">
+        ── یا ──
+    </div>
+
+    <!-- روش دوم: درگاه دولت -->
     <p class="gov-hint">برای ورود از حساب کاربری درگاه ملی خدمات دولت استفاده کنید</p>
 
     <a class="btn-gov"

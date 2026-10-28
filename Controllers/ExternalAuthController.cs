@@ -103,7 +103,12 @@ public class ExternalAuthController : Controller
             }
         }
 
-        await _signInManager.SignInAsync(user, isPersistent: false);
+        // نشانه‌ی ورود از درگاه دولت؛ کلاینت‌هایی مثل پنل مدیریت hmu فقط با این نشانه اجازه می‌دهند
+        await _signInManager.SignInWithClaimsAsync(user, isPersistent: false, new[]
+        {
+            new System.Security.Claims.Claim(GovAuth.SourceClaim, GovAuth.SourceGov),
+            new System.Security.Claims.Claim(GovAuth.TimeClaim, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
+        });
         _logger.LogInformation("کاربر با کد ملی {NationalId} از طریق درگاه دولت وارد شد", info.NationalId);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))

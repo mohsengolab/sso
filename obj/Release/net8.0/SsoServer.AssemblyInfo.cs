@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SsoServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a53456409f372655ec9589d6064a16f18969d421")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8cd152c4345a1a516a0f9bfb94b1fa1c3075710f")]
 [assembly: System.Reflection.AssemblyProductAttribute("SsoServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SsoServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
